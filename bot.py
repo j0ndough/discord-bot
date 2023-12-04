@@ -229,7 +229,9 @@ async def check(ctx, *,
     if not ctx.channel == channels['bot-commands']:
         return
     else:
-        print(args)
+        arglist = args.split(' ')
+        for arg in arglist:
+            print(arg)
 
 
 @bot.event

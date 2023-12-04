@@ -1,2 +1,4 @@
+/__pycache__
+/bot-env
 api_config.cfg
 test.py
