@@ -47,7 +47,7 @@ async def on_ready():
 
     # Start tasks at the top of each minute (0th second)
     now = datetime.now()
-    # await asyncio.sleep(60 - now.second)
+    await asyncio.sleep(60 - now.second)
     update_time.start()
     update_crafting.start()
     update_maps.start()
@@ -229,9 +229,19 @@ async def check(ctx, *,
     if not ctx.channel == channels['bot-commands']:
         return
     else:
+        embed = discord.Embed(
+            title='Player In-Game Status and Gametime',
+            color=discord.Colour.light_gray())
+        embed.add_field(name='Name:', value='', inline=True)
+        embed.add_field(name='Status:', value='', inline=True)
+        embed.add_field(name='Gametime:', value='', inline=True)
         arglist = args.split(' ')
         for arg in arglist:
-            print(arg)
+            result = await league_info.request_status(arg)
+            embed.add_field(name='', value=arg, inline=True)
+            embed.add_field(name='', value=result['status'], inline=True)
+            embed.add_field(name='', value=result['gameTime'], inline=True)
+        await ctx.send(embed=embed)
 
 
 @bot.event
