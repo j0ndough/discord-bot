@@ -11,6 +11,8 @@ while avoiding specific player(s).
 ## Commands
 Commands can only be used in the `#bot-commands` channel.
 
+**!check**
+
 `!check <RiotID1> <RiotID2> ...` checks whether a certain player is currently in-game.
 
 If a player is currently in-game, it also shows how long they have been in-game for.
