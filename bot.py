@@ -217,38 +217,48 @@ async def update_status():
 # Posts an embed message containing a list of what user(s) are ingame in League of Legends.
 @bot.command(brief='Checks whether certain user(s) are ingame in League of Legends.')
 async def check(ctx, *,
-                args = commands.parameter(description='A sequence of Riot ID(s) to look up,'
+                args = commands.parameter(default=None, description='A sequence of Riot ID(s) to look up,'
                                            + ' each separated by a space.')):
     """
         Checks whether certain user(s), denoted by Riot ID, are currently ingame in League of Legends.
         Riot IDs are made up of a game name + a tagline preceded by a "#" (i.e. "Example#NA1").
+        IDs containing spaces should be enclosed in quotes to be recognized as a single name (i.e. "Test Example#NA1").
+        If a tagline is not specified, it will default to NA1.
         A minimum of 1 Riot ID is required to use the command, up to a max of 20.
     """
     if not ctx.channel == channels['bot-commands']:
         return
     else:
-        # Create embed message
-        embed = discord.Embed(
-            title='Player In-Game Status and Gametime',
-            color=discord.Colour.light_gray())
-        embed.add_field(name='Name:', value='', inline=True)
-        embed.add_field(name='Status:', value='', inline=True)
-        embed.add_field(name='Gametime:', value='', inline=True)
+        if args == None:
+            await ctx.send('At least one Riot ID is required to look up information for.')
+            return
         arglist = shlex.split(args)  # keeps id's in quotes intact
-        # Look up status for each given player
-        for arg in arglist:
-            id = arg.split('#', 1)
-            name = id[0]
-            if len(id) == 1:
-                tag = 'NA1'  # default tagline to #NA1 if one is not given
-            else:
-                tag = id[1]
-            result = await league_info.request_status(name, tag)
-            embed.add_field(name='', value=name + '#' + tag, inline=True)
-            embed.add_field(name='', value=result['status'], inline=True)
-            embed.add_field(name='', value=result['gameTime'], inline=True)
-        embed.timestamp = datetime.now()
-        await ctx.send(embed=embed)
+        if len(arglist) >= 20:
+            await ctx.send('Too many Riot IDs - found '
+                           + str(len(arglist)) + '. Try again with 20 or less IDs.')
+            return
+        else:
+            # Create embed message
+            embed = discord.Embed(
+                title='Player In-Game Status and Gametime',
+                color=discord.Colour.light_gray())
+            embed.add_field(name='Name:', value='', inline=True)
+            embed.add_field(name='Status:', value='', inline=True)
+            embed.add_field(name='Gametime:', value='', inline=True)
+            # Look up status for each given player
+            for arg in arglist:
+                id = arg.split('#', 1)
+                name = id[0]
+                if len(id) == 1:
+                    tag = 'NA1'  # default tagline to #NA1 if one is not given
+                else:
+                    tag = id[1]
+                result = await league_info.request_status(name, tag)
+                embed.add_field(name='', value=name + '#' + tag, inline=True)
+                embed.add_field(name='', value=result['status'], inline=True)
+                embed.add_field(name='', value=result['gameTime'], inline=True)
+            embed.timestamp = datetime.now()
+            await ctx.send(embed=embed)
 
 
 # Behavior when a user posts a non-command message.

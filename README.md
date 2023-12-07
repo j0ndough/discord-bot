@@ -11,11 +11,23 @@ while avoiding specific player(s).
 ## Commands
 Commands can only be used in the `#bot-commands` channel.
 
-`!check <RiotID1> <RiotID2> ...` checks whether certain player(s) (denoted by Riot ID) is currently ingame.
-If the player is currently ingame, it also lists the current game time of their match. Accepts a min of 1 Riot ID
-per command, and a max of 20 Riot IDs per command.
+`!check <RiotID1> <RiotID2> ...` checks whether a certain player is currently in-game.
 
-## Requirements
+If a player is currently in-game, it also shows how long they have been in-game for.
+
+Riot IDs that contain spaces should be enclosed in quotes to be recognized as one ID.
+
+If no tagline (i.e. #NA1) is given, a default tagline of `NA1` will be assigned.
+
+A minimum of 1 Riot ID is required to use the command, up to a max of 20.
+
+## Development
+
+* Install Python 3.11.5
+* Clone the repo
+* `python -m venv bot-env` to create a virtual environment for the bot.
+* Activate the virtual environment via `source bot-env/Scripts/activate` in the repo root.
+* `pip install -r requirements.txt` to install the necessary packages.
 
 Rename `config.cfg` to `api_config.cfg` and add the following variables:
 
