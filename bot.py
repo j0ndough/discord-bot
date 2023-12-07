@@ -235,7 +235,7 @@ async def check(ctx, *,
         arglist = shlex.split(args)  # keeps id's in quotes intact
         if len(arglist) >= 20:
             await ctx.send('Too many Riot IDs - found '
-                           + str(len(arglist)) + '. Try again with 20 or less IDs.')
+                           + str(len(arglist)) + '. Try again with 20 or fewer IDs.')
             return
         else:
             # Create embed message
