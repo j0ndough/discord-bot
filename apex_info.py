@@ -2,13 +2,13 @@ import asyncio
 import configparser
 import httpx
 
-# get API key
+# Get API key from config
 config = configparser.ConfigParser()
 config.read('api_config.cfg')
 auth = '?auth=' + config['Credentials']['APEX_API_KEY']
 BASE_URL = 'https://api.mozambiquehe.re/'
 
-# define rarities
+# Define rarities
 rarities = {
     'Common': '⬜',
     'Rare': '🟦',
@@ -44,6 +44,8 @@ async def get_status() -> dict:
     return status
 
 
+# Makes a HTTP request at the given endpoint.
+# Returns a dict containing the json response, or prints an error if it fails and exits the program.
 async def make_request(req: str, params: dict) -> dict:
     try:
         async with httpx.AsyncClient() as client:

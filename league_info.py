@@ -4,7 +4,7 @@ import httpx
 
 from datetime import datetime
 
-# get API key
+# Get API key
 config = configparser.ConfigParser()
 config.read('api_config.cfg')
 auth = '?api_key=' + config['Credentials']['LEAGUE_API_KEY']
@@ -13,8 +13,10 @@ RIOT_URL = 'https://americas.api.riotgames.com'
 LOL_URL = 'https://na1.api.riotgames.com'
 
 
-async def request_status(riot_id: str) -> list:
-    puuid = await get_puuid(riot_id)
+# Returns a dict containing the current ingame status for a user.
+# This function uses multiple get functions to get and process spectator information.
+async def request_status(name: str, tag: str) -> dict:
+    puuid = await get_puuid(name, tag)
     if not puuid:
         return {'status':'Invalid Riot ID.', 'gameTime':'N/A'}
     esid = await get_esid(puuid)
@@ -27,7 +29,7 @@ async def request_status(riot_id: str) -> list:
         return {'status':f'In-Game ({status["mode"]})', 'gameTime':status['time']}
 
 
-# Returns a player's encrypted summoner ID from their puuid.
+# Returns a player's encrypted summoner ID from their puuid as a string.
 # If the puuid is invalid, returns an empty string.
 async def get_esid(puuid: str) -> str:
     endpoint = '/lol/summoner/v4/summoners/by-puuid/'
@@ -38,17 +40,10 @@ async def get_esid(puuid: str) -> str:
         return json['id']
 
 
-# Returns a player's puuid from their Riot ID.
+# Returns a player's puuid from their Riot ID as a string.
 # If the Riot ID is invalid, returns an empty string.
-# If no tagLine is provided, defaults to #NA1.
-async def get_puuid(riot_id: str) -> str:
+async def get_puuid(name: str, tag: str) -> str:
     endpoint = '/riot/account/v1/accounts/by-riot-id/'
-    id_split = riot_id.split('#', 1)
-    name = id_split[0]
-    if (len(id_split) == 1):
-        tag = 'NA1'
-    else:
-        tag = id_split[1]
     query = name + '/' + tag
     json = await make_request(RIOT_URL, endpoint, query)
     if not json:
@@ -57,7 +52,7 @@ async def get_puuid(riot_id: str) -> str:
         return json['puuid']
 
 
-# Retrieves live info about a player's ingame status.
+# Retrieves live info about a player's ingame status from spectator info.
 # If the player is not ingame, returns an empty dict.
 async def get_ingame_status(esid: str) -> dict:
     endpoint = '/lol/spectator/v4/active-games/by-summoner/'
@@ -80,6 +75,9 @@ async def get_ingame_status(esid: str) -> dict:
         return status
 
 
+# Makes a HTTP request at the given endpoint.
+# If successful, returns a dict containing the json response, or an empty dict is the response is a 404.
+# Otherwise, prints error to console and exits the program.
 async def make_request(url: str, endpoint: str, query: str) -> dict:
     try:
         async with httpx.AsyncClient() as client:

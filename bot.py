@@ -4,6 +4,7 @@ import configparser
 import datetime
 import discord
 import league_info
+import shlex
 
 from datetime import datetime, timedelta, time
 from discord.ext import commands, tasks
@@ -58,8 +59,7 @@ async def on_ready():
 
 
 # Updates the name of voice channels to reflect the current time in certain timezones.
-# This function is commented out and not used due to Discord's rate limiting policy,
-# which for renaming channels, is twice per 10 minutes.
+# This function is commented out and not used due to Discord's rate limits on editing voice channels.
 @tasks.loop(minutes=1)
 async def update_channel_time():
     # Update PT
@@ -80,7 +80,6 @@ async def update_channel_time():
 # Timezones are provided via the tz list above.
 @tasks.loop(minutes=1)
 async def update_time():
-
     # Delete bot's previous message in channel
     # limit=1 assumes the channel will not have any other messages.
     await channels['world_clock'].purge(limit=1)
@@ -95,9 +94,9 @@ async def update_time():
         td = datetime.now(tz=t)
         day = td.date().strftime('%A')  # get weekday in English
         date = td.date().strftime('%B') + ' ' + str(td.day) + ', ' + str(td.year)  # get month's name
-        time = str(td.hour) + ':' + td.time().strftime('%M')
+        time = str(td.hour) + ':' + td.time().strftime('%M')  # get HH:MM
         hour_offset = int(td.utcoffset().total_seconds()/3600)  # convert UTC offset to hours only
-        offset = ' (UTC'
+        offset = ' (UTC'  # build utc offset string
         if (hour_offset != 0):
             if (hour_offset > 0):
                 offset = offset + '+'
@@ -118,7 +117,6 @@ async def update_time():
 # Posts an embed mesage containing the current crafting rotation in Apex Legends.
 # Daily rotations update at 10 AM PT, while weekly rotations update on Sundays.
 @tasks.loop(time=time(hour=10, minute=1, tzinfo=ZoneInfo('US/Pacific')))
-# @tasks.loop(time=datetime.time(hour=10, minute=1, tzinfo=ZoneInfo('US/Pacific')))
 async def update_crafting():
     # Delete bot's previous message in channel
     # limit=1 assumes the channel will not have any other messages.
@@ -216,7 +214,7 @@ async def update_status():
     await channels['status'].send(embed=embed)
 
 
-# Checks whether certain user(s) are ingame in League of Legends.
+# Posts an embed message containing a list of what user(s) are ingame in League of Legends.
 @bot.command(brief='Checks whether certain user(s) are ingame in League of Legends.')
 async def check(ctx, *,
                 args = commands.parameter(description='A sequence of Riot ID(s) to look up,'
@@ -229,29 +227,40 @@ async def check(ctx, *,
     if not ctx.channel == channels['bot-commands']:
         return
     else:
+        # Create embed message
         embed = discord.Embed(
             title='Player In-Game Status and Gametime',
             color=discord.Colour.light_gray())
         embed.add_field(name='Name:', value='', inline=True)
         embed.add_field(name='Status:', value='', inline=True)
         embed.add_field(name='Gametime:', value='', inline=True)
-        arglist = args.split(' ')
+        arglist = shlex.split(args)  # keeps id's in quotes intact
+        # Look up status for each given player
         for arg in arglist:
-            result = await league_info.request_status(arg)
-            embed.add_field(name='', value=arg, inline=True)
+            id = arg.split('#', 1)
+            name = id[0]
+            if len(id) == 1:
+                tag = 'NA1'  # default tagline to #NA1 if one is not given
+            else:
+                tag = id[1]
+            result = await league_info.request_status(name, tag)
+            embed.add_field(name='', value=name + '#' + tag, inline=True)
             embed.add_field(name='', value=result['status'], inline=True)
             embed.add_field(name='', value=result['gameTime'], inline=True)
+        embed.timestamp = datetime.now()
         await ctx.send(embed=embed)
 
 
+# Behavior when a user posts a non-command message.
 @bot.event
 async def on_message(message):
     # Ignore messages from bot to prevent looping
     if message.author.bot:
         return
 
-    # ignore messages that start with command symbol, on_message behavior here
-    # if not message.content.startswith('!'):
+    # ignore messages that start with command symbol
+    if not message.content.startswith('!'):
+        pass
 
     # Allows compatibility with commands
     await bot.process_commands(message)
