@@ -229,7 +229,7 @@ async def check(ctx, *,
         return
     else:
         if args == None:
-            await ctx.send('At least one Riot ID is required to look up information for.')
+            await ctx.send('At least one valid Riot ID is required in order to retrieve information.')
             return
         arglist = shlex.split(args)  # keeps id's in quotes intact
         if len(arglist) >= 20:
