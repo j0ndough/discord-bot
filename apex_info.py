@@ -1,11 +1,11 @@
 import asyncio
-import configparser
 import httpx
 
+from dotenv import dotenv_values
+
 # Get API key from config
-config = configparser.ConfigParser()
-config.read('api_config.cfg')
-auth = '?auth=' + config['Credentials']['APEX_API_KEY']
+config = dotenv_values('.env')
+auth = '?auth=' + config.get('APEX_API_KEY')
 BASE_URL = 'https://api.mozambiquehe.re/'
 
 # Define rarities

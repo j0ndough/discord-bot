@@ -1,6 +1,5 @@
 import apex_info
 import asyncio
-import configparser
 import datetime
 import discord
 import league_info
@@ -8,12 +7,12 @@ import shlex
 
 from datetime import datetime, timedelta, time
 from discord.ext import commands, tasks
+from dotenv import dotenv_values
 from zoneinfo import ZoneInfo
 
 # Read API keys, tokens, guild ID from config file
-config = configparser.ConfigParser()
-config.read('api_config.cfg')
-token = config['Credentials']['DISCORD_TOKEN']
+config = dotenv_values('.env')
+token = config.get('DISCORD_TOKEN')
 # guild_id = config['Credentials']['SERVER_ID']
 
 # set up intents

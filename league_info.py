@@ -1,13 +1,12 @@
-import configparser
 import datetime as dt
 import httpx
 
 from datetime import datetime
+from dotenv import dotenv_values
 
 # Get API key
-config = configparser.ConfigParser()
-config.read('api_config.cfg')
-auth = '?api_key=' + config['Credentials']['LEAGUE_API_KEY']
+config = dotenv_values('.env')
+auth = '?api_key=' + config.get('LEAGUE_API_KEY')
 
 RIOT_URL = 'https://americas.api.riotgames.com'
 LOL_URL = 'https://na1.api.riotgames.com'

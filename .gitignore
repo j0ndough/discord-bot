@@ -2,3 +2,4 @@
 /bot-env
 api_config.cfg
 test.py
+.env
