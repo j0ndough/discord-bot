@@ -1,8 +1,13 @@
 #!/bin/sh
 
-# activate venv for Windows
-source bot-env/Scripts/activate
-# activate venv for Linux
-# source bot-env/bin/activate
+OS="$OSTYPE" # Get OS platform
+case $OS in
+    msys*) # Windows OS
+        source bot-env/Scripts/activate
+    ;;
+    *) # Non Windows OS
+        source bot-env/bin/activate
+    ;;
+esac
 
 python main.py

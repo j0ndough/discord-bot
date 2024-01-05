@@ -1,8 +1,13 @@
 #!/bin/sh
 
-# get PID on Windows
-pid=$(ps aux | grep python | awk '{print $1}')
-# get PID on Linux
-pid=$(ps aux | grep python | awk '{print $2}')
+OS="$OSTYPE" # Get OS platform
+case $OS in
+    msys*) # Windows OS
+        pid=$(ps aux | grep python | awk '{print $1}')
+    ;;
+    *) # Non Windows OS
+        pid=$(ps aux | grep python | awk '{print $2}')
+    ;;
+esac
 
 kill $pid

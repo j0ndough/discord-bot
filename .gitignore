@@ -2,5 +2,6 @@
 /bot-env
 api_config.cfg
 test.py
+test.sh
 .env
 nohup.out
