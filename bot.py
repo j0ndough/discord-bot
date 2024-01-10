@@ -54,7 +54,7 @@ async def on_ready():
     update_status.start()
     # update_channel_time.start()
 
-    print('Bot is running.')
+    # print('Bot is running.')
 
 
 # Updates the name of voice channels to reflect the current time in certain timezones.
@@ -108,7 +108,7 @@ async def update_time():
 
     # Time debugging
     now = datetime.now()
-    print('World clock updated at ' + str(now).split('.')[0])
+    # print('World clock updated at ' + str(now).split('.')[0])
 
     await channels['world_clock'].send(embed=embed)
 
@@ -141,7 +141,7 @@ async def update_crafting():
 
     # Time debugging
     now = datetime.now()
-    print('Crafting rotation updated at ' + str(now).split('.')[0])
+    # print('Crafting rotation updated at ' + str(now).split('.')[0])
 
     await channels['crafting'].send(embed=embed)
 
@@ -177,7 +177,7 @@ async def update_maps():
 
     # Time debugging
     now = datetime.now()
-    print('Map rotation updated at ' + str(now).split('.')[0])
+    # print('Map rotation updated at ' + str(now).split('.')[0])
 
     await channels['map'].send(embed=embed)
 
@@ -208,7 +208,7 @@ async def update_status():
 
     # Time debugging
     now = datetime.now()
-    print('Server status updated at ' + str(now).split('.')[0])
+    # print('Server status updated at ' + str(now).split('.')[0])
 
     await channels['status'].send(embed=embed)
 
@@ -237,6 +237,15 @@ async def check(ctx, *,
                            + str(len(arglist)) + '. Try again with 20 or fewer IDs.')
             return
         else:
+            id_set = []
+            for arg in arglist:  # filter out duplicate id's
+                if '#' not in arg:  # append '#NA1' to id's with no tagLine
+                    arg = arg + '#NA1'
+                if arg not in id_set:
+                    id_set.append(arg)
+            player_status = dict.fromkeys(id_set)
+            # Look up ingame status for each player
+            player_status = await league_info.request_status(player_status)
             # Create embed message
             embed = discord.Embed(
                 title='Player In-Game Status and Gametime',
@@ -244,15 +253,7 @@ async def check(ctx, *,
             embed.add_field(name='Name:', value='', inline=True)
             embed.add_field(name='Status:', value='', inline=True)
             embed.add_field(name='Gametime:', value='', inline=True)
-            # Look up status for each given player
-            for arg in arglist:
-                id = arg.split('#', 1)
-                name = id[0]
-                if len(id) == 1:
-                    tag = 'NA1'  # default tagline to #NA1 if one is not given
-                else:
-                    tag = id[1]
-                result = await league_info.request_status(name, tag)
+            for status in player_status:
                 embed.add_field(name='', value=name + '#' + tag, inline=True)
                 embed.add_field(name='', value=result['status'], inline=True)
                 embed.add_field(name='', value=result['gameTime'], inline=True)
