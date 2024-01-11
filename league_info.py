@@ -14,9 +14,10 @@ LOL_URL = 'https://na1.api.riotgames.com'
 
 # Returns a dict containing the current ingame status for a user.
 # This function uses multiple get functions to get and process spectator information.
-async def request_status(player_status: dict) -> dict:
+async def request_status(player_status: dict):
     puuids = []
     visited = []  # Keep track of PUUID's that are in-game
+    puuid_to_id = {}  # Map PUUIDs to Riot ID's
     # Get all PUUID's first
     for id in player_status:
         riot_id = split_id(id)
@@ -26,15 +27,14 @@ async def request_status(player_status: dict) -> dict:
     for player, puuid in zip(player_status, puuids):
         if not puuid:
             player_status[player] = {'status':'Invalid Riot ID.', 'gameTime':'N/A'}
-            break
+            continue
+        puuid_to_id.update({puuid: player})
         esid = await get_esid(puuid)
         if not esid:
             player_status[player] = {'status':'Valid Riot ID but no League account.', 'gameTime':'N/A'}
-            break
-        player_status = await get_ingame_status(esid, puuid, player_status, visited)
-    return
-    #return player_status
-
+            continue
+        print(player)
+        await get_ingame_status(esid, player, puuid_to_id, visited, player_status)
 
 # Returns a player's Riot ID as a dict, split into gameName and tagLine.
 # If tagLine is not specified by the input ID, defaults to NA1.
@@ -70,12 +70,12 @@ async def get_puuid(name: str, tag: str) -> str:
 
 
 # Retrieves live info about a player's ingame status from spectator info.
-async def get_ingame_status(esid: str, curr_player: str, visited: list, player_status: dict):
-    if curr_player not in visited:  # check if we've already looked up status for current player
+async def get_ingame_status(esid: str, curr: str, puuid_to_id: dict, visited: list, player_status: dict):
+    if curr not in visited:  # check if we've already looked up status for current player
         endpoint = '/lol/spectator/v4/active-games/by-summoner/'
         json = await make_request(LOL_URL, endpoint, esid)
         if not json:  # player is not in-game
-            player_status[curr_player] = {'status':'User is not in-game.', 'gameTime':'N/A'}
+            player_status[curr] = {'status':'User is not in-game.', 'gameTime':'N/A'}
         else:
             cur_mode = json['gameMode']
             if json['gameStartTime'] == 0:
@@ -85,11 +85,14 @@ async def get_ingame_status(esid: str, curr_player: str, visited: list, player_s
                 mins = delta.seconds // 60
                 secs = delta.seconds % 60
                 cur_time = str(mins).zfill(2) + ':' + str(secs).zfill(2)  # zero pad mins/secs
-            player_status[curr_player] = {
+                cur_info = {
                 'mode': cur_mode,
                 'time': cur_time
             }
-            visited.append(curr_player)
+            for p in json['participants']:  # check if multiple players from input are in the same game
+                if p['puuid'] in puuid_to_id:
+                    player_status[curr] = cur_info
+                    visited.append(curr)  # add current player to visited list so we don't make extra requests
 
 # Makes a HTTP request at the given endpoint.
 # If successful, returns a dict containing the json response, or an empty dict is the response is a 404.

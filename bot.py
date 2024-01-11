@@ -244,8 +244,8 @@ async def check(ctx, *,
                 if arg not in id_set:
                     id_set.append(arg)
             player_status = dict.fromkeys(id_set)
-            # Look up ingame status for each player
-            player_status = await league_info.request_status(player_status)
+            # Look up in-game status for all players
+            await league_info.request_status(player_status)
             # Create embed message
             embed = discord.Embed(
                 title='Player In-Game Status and Gametime',
@@ -253,10 +253,10 @@ async def check(ctx, *,
             embed.add_field(name='Name:', value='', inline=True)
             embed.add_field(name='Status:', value='', inline=True)
             embed.add_field(name='Gametime:', value='', inline=True)
-            for status in player_status:
-                embed.add_field(name='', value=name + '#' + tag, inline=True)
-                embed.add_field(name='', value=result['status'], inline=True)
-                embed.add_field(name='', value=result['gameTime'], inline=True)
+            for player in player_status:
+                embed.add_field(name='', value=player, inline=True)
+                embed.add_field(name='', value=player_status[player]['status'], inline=True)
+                embed.add_field(name='', value=player_status[player]['gameTime'], inline=True)
             embed.timestamp = datetime.now()
             await ctx.send(embed=embed)
 
