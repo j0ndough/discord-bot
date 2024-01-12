@@ -12,8 +12,7 @@ RIOT_URL = 'https://americas.api.riotgames.com'
 LOL_URL = 'https://na1.api.riotgames.com'
 
 
-# Returns a dict containing the current ingame status for a user.
-# This function uses multiple get functions to get and process spectator information.
+# Updates the player_status dict to have ID validity/in-game status for all specified players.
 async def request_status(player_status: dict):
     puuids = []
     visited = []  # Keep track of PUUID's that are in-game
@@ -69,7 +68,7 @@ async def get_puuid(name: str, tag: str) -> str:
         return json['puuid']
 
 
-# Retrieves live info about a player's ingame status from spectator info.
+# Retrieves live info about the in-game status of specified players, updating the player_status dict.
 async def get_ingame_status(esid: str, curr: str, puuid_to_id: dict, visited: list, player_status: dict):
     if curr not in visited:  # check if we've already looked up status for current player
         endpoint = '/lol/spectator/v4/active-games/by-summoner/'
