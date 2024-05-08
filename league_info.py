@@ -10,6 +10,9 @@ auth = '?api_key=' + config.get('LEAGUE_API_KEY')
 
 RIOT_URL = 'https://americas.api.riotgames.com'
 LOL_URL = 'https://na1.api.riotgames.com'
+PUUID_ENDPOINT = '/lol/summoner/v4/summoners/by-puuid/'
+RIOTID_ENDPOINT = '/riot/account/v1/accounts/by-riot-id/'
+LOL_INGAME_ENDPOINT = '/lol/spectator/v4/active-games/by-summoner/'
 
 
 # Updates the player_status dict to have ID validity/in-game status for all specified players.
@@ -48,8 +51,7 @@ def split_id(id: str) -> dict:
 # Returns a player's encrypted summoner ID from their puuid as a string.
 # If the puuid is invalid, returns an empty string.
 async def get_esid(puuid: str) -> str:
-    endpoint = '/lol/summoner/v4/summoners/by-puuid/'
-    json = await make_request(LOL_URL, endpoint, puuid)
+    json = await make_request(LOL_URL, PUUID_ENDPOINT, puuid)
     if not json:
         return ''
     else:
@@ -59,9 +61,8 @@ async def get_esid(puuid: str) -> str:
 # Returns a player's puuid from their Riot ID as a string.
 # If the Riot ID is invalid, returns an empty string.
 async def get_puuid(name: str, tag: str) -> str:
-    endpoint = '/riot/account/v1/accounts/by-riot-id/'
     query = name + '/' + tag
-    json = await make_request(RIOT_URL, endpoint, query)
+    json = await make_request(RIOT_URL, RIOTID_ENDPOINT, query)
     if not json:
         return ''
     else:
@@ -72,7 +73,7 @@ async def get_puuid(name: str, tag: str) -> str:
 async def get_ingame_status(esid: str, curr: str, puuid_to_id: dict, visited: list, player_status: dict):
     if curr not in visited:  # check if we've already looked up status for current player
         endpoint = '/lol/spectator/v4/active-games/by-summoner/'
-        json = await make_request(LOL_URL, endpoint, esid)
+        json = await make_request(LOL_URL, LOL_INGAME_ENDPOINT, esid)
         if not json:  # player is not in-game
             player_status[curr] = {'status':'User is not in-game.', 'gameTime':'N/A'}
         else:
